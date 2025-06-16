@@ -12,7 +12,17 @@ int cmap[MAX_THREADS]; /* lazy hack to avoid malloc */
 time_t objective;
 
 /* courtesy Homer. I don't think he'll mind */
-char *tohash = "Meanwhile the people were gathered in assembly, for there was a quarrel, and two men were wrangling about the blood-money for a man who had been killed, the one saying before the people that he had paid damages in full, and the other that he had not been paid. Each was trying to make his own case good, and the people took sides, each man backing the side that he had taken; but the heralds kept them back, and the elders sate on their seats of stone in a solemn circle, holding the staves which the heralds had put into their hands. Then they rose and each in his turn gave judgement, and there were two talents laid down, to be given to him whose judgement should be deemed the fairest.";
+char *tohash = "Meanwhile the people were gathered in assembly, for there "
+	"was a quarrel, and two men were wrangling about the blood-money for "
+	"a man who had been killed, the one saying before the people that he "
+	"had paid damages in full, and the other that he had not been paid. "
+	"Each was trying to make his own case good, and the people took "
+	"sides, each man backing the side that he had taken; but the heralds "
+	"kept them back, and the elders sate on their seats of stone in a "
+	"solemn circle, holding the staves which the heralds had put into "
+	"their hands. Then they rose and each in his turn gave judgement, "
+	"and there were two talents laid down, to be given to him whose "
+	"judgement should be deemed the fairest.";
 
 int djb2(char *str) {
 	unsigned long i = 5381;
@@ -48,9 +58,11 @@ void *cpu_worker(void *p) {
 }
 
 int main(int argc, char *argv[]) {
-	int i, nthreads;
-	nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+	int i, nprocs, nthreads;
 	printf("Detected %d logical processors online\n", nthreads);
+	if (argc == 2) {
+	}
+	nthreads = sysconf(_SC_NPROCESSORS_ONLN);
 	objective = time(NULL) + 10;
 	for (i = 0; i < nthreads; i++) {
 		cmap[i] = i;
