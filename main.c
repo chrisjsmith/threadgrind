@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -59,13 +60,22 @@ void *cpu_worker(void *p) {
 
 int main(int argc, char *argv[]) {
 	int i, nprocs, nthreads;
-	printf("Detected %d logical processors online\n", nthreads);
+	nprocs = sysconf(_SC_NPROCESSORS_ONLN);
+	printf("Detected %d logical processors online\n", nprocs);
 	if (argc == 2) {
-	}
-	nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+		if (sscanf(argv[1], "%d", &nthreads) == EOF ||
+			nthreads > MAX_THREADS ||
+			nthreads < 1) {
+			fprintf(stderr, "invalid thread count");
+			return 1;
+		}
+	} else
+		nthreads = nprocs;
+
+	printf("Using %d threads\n", nthreads);
 	objective = time(NULL) + 10;
 	for (i = 0; i < nthreads; i++) {
-		cmap[i] = i;
+		cmap[i] = i % nprocs;
 		pthread_create(&threads[i], NULL, cpu_worker, &cmap[i]); 
 	}
        	for (i = 0; i < nthreads; i++) 
