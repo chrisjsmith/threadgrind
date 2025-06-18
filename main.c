@@ -28,10 +28,10 @@ char *tohash = "Meanwhile the people were gathered in assembly, for there "
 int djb2(char *str) {
 	unsigned long i = 5381;
 	int c;
+
 	while (c = *str++)
 		i = ((i << 5) + i) + c;
 	return i;
-		
 }
 
 void *cpu_worker(void *p) {
@@ -41,7 +41,6 @@ void *cpu_worker(void *p) {
 	pthread_t t;
 
 	core = (int*)p;
-
 	CPU_ZERO(&cpuset);
 	CPU_SET(*core, &cpuset);
 	t = pthread_self();
@@ -60,6 +59,7 @@ void *cpu_worker(void *p) {
 
 int main(int argc, char *argv[]) {
 	int i, nprocs, nthreads;
+
 	nprocs = sysconf(_SC_NPROCESSORS_ONLN);
 	printf("Detected %d logical processors online\n", nprocs);
 	if (argc == 2) {
