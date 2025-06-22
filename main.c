@@ -31,6 +31,7 @@ char *tohash = "Meanwhile the people were gathered in assembly, for there "
 	"and there were two talents laid down, to be given to him whose "
 	"judgement should be deemed the fairest.";
 
+/* DJB hash */
 int djb2(char *str) {
 	unsigned long i = 5381;
 	int c;
@@ -40,6 +41,7 @@ int djb2(char *str) {
 	return i;
 }
 
+/* worker thread */
 void *cpu_worker(void *p) {
 	time_t now;
 	int i, j;
@@ -48,10 +50,14 @@ void *cpu_worker(void *p) {
 	grindt *gt;
 
 	gt = (grindt *) p;
+
+	/* set affinity to provided core */
 	CPU_ZERO(&cpuset);
 	CPU_SET(gt->core, &cpuset);
 	t = pthread_self();
 	pthread_setaffinity_np(t, sizeof(cpu_set_t), &cpuset);
+
+	/* do work until time is past objective */
 	printf("Worker started on core %d\n", gt->core);
 	for (i=0; ; i++) {
 		for (j=0; j < 1000; j++) 
@@ -60,10 +66,13 @@ void *cpu_worker(void *p) {
 		if (now > objective)
 			break;	
 	}
+
+	/* save iteration count as result */
 	gt->result = i;
 	return NULL;
 }
 
+/* comparer for results */
 int grindt_compare_result(const void* a, const void* b) {
 	grindt *grindt_a = (grindt *)a;
 	grindt *grindt_b = (grindt *)b;
@@ -75,11 +84,15 @@ int grindt_compare_result(const void* a, const void* b) {
 	return 0;
 }
 
+/* entry point */
 int main(int argc, char *argv[]) {
 	int i, nprocs, nthreads;
 
+	/* work out logical processor count */
 	nprocs = sysconf(_SC_NPROCESSORS_ONLN);
 	printf("Detected %d logical processors online\n", nprocs);
+
+	/* override logical processor count with parameter if provided */
 	if (argc == 2) {
 		if (sscanf(argv[1], "%d", &nthreads) == EOF ||
 			nthreads > MAX_THREADS ||
@@ -89,17 +102,22 @@ int main(int argc, char *argv[]) {
 		}
 	} else
 		nthreads = nprocs;
-
 	printf("Using %d threads\n", nthreads);
+
+	/* work out 10 seconds in the future */
 	objective = time(NULL) + 10;
+
+	/* create threads */
 	for (i = 0; i < nthreads; i++) {
 		tmap[i].core = i % nprocs;
 		pthread_create(&threads[i], NULL, cpu_worker, &tmap[i]);
 	}
+
+	/* wait for all threads to exit */
        	for (i = 0; i < nthreads; i++) 
 		pthread_join(threads[i], NULL);	
 
-	/* sort */
+	/* sort results */
 	qsort(tmap, nthreads, sizeof(grindt), grindt_compare_result);
 
 	/* print results */
