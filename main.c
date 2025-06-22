@@ -8,8 +8,13 @@
 
 #define MAX_THREADS 128
 
+typedef struct {
+	int core;
+	int result;
+} grindt;
+
 pthread_t threads[MAX_THREADS];
-int cmap[MAX_THREADS]; /* lazy hack to avoid malloc */
+grindt tmap[MAX_THREADS]; /* thread data */
 time_t objective;
 
 /* courtesy Homer. I don't think he'll mind */
@@ -36,16 +41,17 @@ int djb2(char *str) {
 
 void *cpu_worker(void *p) {
 	time_t now;
-	int i, j, *core;
+	int i, j;
 	cpu_set_t cpuset;
 	pthread_t t;
+	grindt *gt;
 
-	core = (int*)p;
+	gt = (grindt *) p;
 	CPU_ZERO(&cpuset);
-	CPU_SET(*core, &cpuset);
+	CPU_SET(gt->core, &cpuset);
 	t = pthread_self();
 	pthread_setaffinity_np(t, sizeof(cpu_set_t), &cpuset);
-	printf("Worker started on core %d\n", *core);
+	printf("Worker started on core %d\n", gt->core);
 	for (i=0; ; i++) {
 		for (j=0; j < 1000; j++) 
 			djb2(tohash);
@@ -53,7 +59,7 @@ void *cpu_worker(void *p) {
 		if (now > objective)
 			break;	
 	}
-	printf("Iteration blocks on core %d: %d\n", *core, i);
+	gt->result = i;
 	return NULL;
 }
 
@@ -75,10 +81,15 @@ int main(int argc, char *argv[]) {
 	printf("Using %d threads\n", nthreads);
 	objective = time(NULL) + 10;
 	for (i = 0; i < nthreads; i++) {
-		cmap[i] = i % nprocs;
-		pthread_create(&threads[i], NULL, cpu_worker, &cmap[i]); 
+		tmap[i].core = i % nprocs;
+		pthread_create(&threads[i], NULL, cpu_worker, &tmap[i]);
 	}
        	for (i = 0; i < nthreads; i++) 
 		pthread_join(threads[i], NULL);	
+
+	/* print results */
+	for (i = 0; i < nthreads; i++)
+		printf("Iteration blocks on core %d: %d\n", tmap[i].core, tmap[i].result);
+
 	return 0;
 }
