@@ -1,8 +1,8 @@
 # threadgrind
 
-Hammer one thread per core on a Linux node to assess relative CPU performance. Uses naive djb2 hash iterations.
+Hammer n threads, distributing equally per logical core on a Linux node to assess relative CPU performance. Uses naive djb2 hash iterations as a work function.
 
-Allows you to infer E-cores vs P-cores and cloud provider ripping you off for hyperthreads instead of real cores.
+Allows you to infer E-cores vs P-cores and cloud providers ripping you off for hyperthreads instead of real cores.
 
 ## Build
 
@@ -15,3 +15,7 @@ Allows you to infer E-cores vs P-cores and cloud provider ripping you off for hy
 
 * `./threadgrind` - detect core count and run a thread per core.
 * `./threadgrind n` - override number of threads and balance them fairly across cores.
+
+## TODO
+
+* Sort by core / result
