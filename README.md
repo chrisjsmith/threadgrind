@@ -15,7 +15,3 @@ Allows you to infer E-cores vs P-cores and cloud providers ripping you off for h
 
 * `./threadgrind` - detect core count and run a thread per core.
 * `./threadgrind n` - override number of threads and balance them fairly across cores.
-
-## TODO
-
-* Sort by core / result
